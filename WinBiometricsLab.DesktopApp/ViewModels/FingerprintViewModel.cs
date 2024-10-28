@@ -51,7 +51,6 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
                 if (value != null)
                 {
                     NameInput = value.Name;
-                    SelectedFingerprintPostition = value.Position.ToString();
                     SelectedFunction = value.AssignedFunction.ToString();
                 }
                 OnPropertyChanged();
@@ -164,6 +163,12 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
                 return;
             }
             var identifiedFingerprint = Fingerprints.FirstOrDefault(x => x.Position == result.FingerPosition);
+            if (identifiedFingerprint == null)
+            {
+                DisplayInfo($"Fingerprint {result.FingerPosition} recognized");
+                return;
+            }
+
             DisplayInfo($"Fingerprint {result.FingerPosition} recognized. Performing function {identifiedFingerprint.AssignedFunction}");
         }
 

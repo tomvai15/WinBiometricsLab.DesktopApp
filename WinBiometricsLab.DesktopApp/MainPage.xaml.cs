@@ -17,7 +17,9 @@ namespace WinBiometricsLab.DesktopApp
 
         private async void OnInitiateAddFingerprint(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new AddFingerprintPage(service, ((FingerprintViewModel)BindingContext).Fingerprints));
+            var callback = (Page page) => Navigation.RemovePage(page); ;
+            var page = new AddFingerprintPage(service, ((FingerprintViewModel)BindingContext).Fingerprints, callback);
+            await Navigation.PushAsync(page);
         }
     }
 }

@@ -10,6 +10,7 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
     public class AddFingerprintPageViewModel : INotifyPropertyChanged
     {
         private readonly IBiometricService _biometricService;
+        private readonly Action _callback;
 
         private string _selectedFunction = FunctionType.a.ToString();
         public string SelectedFunction
@@ -53,10 +54,13 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
 
         public ICommand AddFingerprintCommand { get; }
 
-        public AddFingerprintPageViewModel(IBiometricService biometricService, ObservableCollection<Fingerprint> fingerprints)
+        public AddFingerprintPageViewModel(IBiometricService biometricService, 
+            ObservableCollection<Fingerprint> fingerprints, 
+            Action callback)
         {
             _biometricService = biometricService;
             Fingerprints = fingerprints;
+            _callback = callback;
 
             AddFingerprintCommand = new Command(AddFingerprint);
         }
@@ -86,6 +90,8 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
             };
 
             Fingerprints.Add(fingerprint);
+
+            _callback();
         }
 
 
