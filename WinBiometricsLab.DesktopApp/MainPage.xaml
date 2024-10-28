@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="WinBiometricsLab.DesktopApp.MainPage"
+             xmlns:local="clr-namespace:WinBiometricsLab.DesktopApp.Converters">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <local:NullToBooleanConverter x:Key="NullToBooleanConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <!-- Define a Grid to separate left and right sections -->
+    <Grid Padding="20" ColumnDefinitions="2*, 2*">
+
+        <!-- Left Side: Fingerprint Information and Actions -->
+        <VerticalStackLayout Grid.Column="0" Grid.Row="0" Padding="10">
+
+            <Label Text="Fingerprint information"
+                   FontSize="20" 
+                   FontAttributes="Bold" />
+
+            <Entry Placeholder="Enter Fingerprint Name"
+                   Text="{Binding NameInput}" 
+                   FontSize="16"/>
+
+            <Button Text="Update Selected Fingerprint" 
+                    Command="{Binding UpdateFingerprintCommand}" 
+                    IsEnabled="{Binding SelectedFingerprint, Converter={StaticResource NullToBooleanConverter}}" 
+                    Margin="0,10,0,0" />
+
+            <Button Text="Delete Selected Fingerprint" 
+                    Command="{Binding DeleteFingerprintCommand}" 
+                    IsEnabled="{Binding SelectedFingerprint, Converter={StaticResource NullToBooleanConverter}}" 
+                    Margin="0,10,0,0" />
+
+            <StackLayout Padding="10"  Spacing="5" Orientation="Horizontal" >
+                <Label VerticalTextAlignment="Center" Text="Function type" />
+                <Picker  ItemsSource="{Binding FunctionTypes}"
+                    SelectedItem="{Binding SelectedFunction}" />
+            </StackLayout>
+
+            <BoxView HeightRequest="1" BackgroundColor="LightGray"/>
+
+
+            <Label Text="Actions"
+                   FontSize="20" 
+                   Padding="10"
+                   FontAttributes="Bold" />
+
+            <StackLayout Padding="10"  Spacing="5" Orientation="Horizontal" >
+                <Label VerticalTextAlignment="Center" Text="Finger position" />
+                <Picker ItemsSource="{Binding FingerprintPostitions}"
+                    SelectedItem="{Binding SelectedFingerprintPostition}" />
+            </StackLayout>
+
+            <Button Text="Verify Fingerprint" 
+                    Command="{Binding VerifyFingerprintCommand}" 
+                    Margin="0,10,0,0" />
+
+            <Button Text="Identify Fingerprint" 
+                    Command="{Binding IdentifyFingerprintCommand}" 
+                    Margin="0,10,0,0" />
+
+
+            <Label Text="{Binding InfoText}"
+                   FontSize="20" 
+                   FontAttributes="Bold" />
+
+        </VerticalStackLayout>
+
+        <VerticalStackLayout Grid.Column="1" Grid.Row="0" Padding="10">
+            <!-- Right Side: List of Fingerprints -->
+            <CollectionView ItemsSource="{Binding Fingerprints}"
+                        SelectionMode="Single"
+                        SelectedItem="{Binding SelectedFingerprint}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <StackLayout Padding="10">
+                            <Label Text="{Binding FullName}" FontSize="16" />
+                        </StackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Button
+                 Text="Add Fingerprint" 
+                 Clicked="OnInitiateAddFingerprint"
+                 Margin="0,10,0,0" 
+                 HorizontalOptions="Start" />
+        </VerticalStackLayout>
+
+    </Grid>
+
+</ContentPage>
