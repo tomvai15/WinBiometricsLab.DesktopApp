@@ -81,15 +81,14 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
             var position = Enum.Parse<FingerPosition>(SelectedFingerprintPostition);
             _biometricService.BeginEnroll(position);
 
-
             ICaptureEnrollResult result = null;
             DisplayInfo("Scan finger");
-            await Task.Run(() => result = _biometricService.CaptureEnroll());
+            result = await _biometricService.CaptureEnroll();
 
             while (result.IsRequiredMoreData || result.RejectDetail != default)
             {
                 DisplayInfo("Scan finger again");
-                await Task.Run(() => result = _biometricService.CaptureEnroll());
+                result = await _biometricService.CaptureEnroll();
                 DisplayInfo("");
                 await Task.Delay(100);
             }

@@ -7,8 +7,8 @@ namespace WinBiometricsLab.DesktopApp
 {
     public partial class MainPage : ContentPage
     {
-        private readonly IBiometricService _biometricService = AppSettings.UseFakeBiometrics 
-            ? new FakeBiometricsService() 
+        private readonly IBiometricService _biometricService = AppSettings.UseFakeBiometrics
+            ? new FakeBiometricsService()
             : new BiometricService();
 
         public MainPage()
@@ -23,7 +23,7 @@ namespace WinBiometricsLab.DesktopApp
         {
             InfoText.Text = "Please touch scanner";
 
-            await Task.Run(() => _biometricService.OpenSession());
+            await _biometricService.OpenSession();
             var page = new FingerprintPage(_biometricService);
             await Navigation.PushAsync(page);
         }

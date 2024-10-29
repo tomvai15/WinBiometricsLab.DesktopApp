@@ -3,21 +3,21 @@ using WinBiometricsLab.Core.Results;
 
 public interface IBiometricService
 {
-    public void OpenSession();
+    public Task OpenSession();
 
-    public void BeginEnroll(FingerPosition fingerPosition);
+    public Task BeginEnroll(FingerPosition fingerPosition);
 
-    public ICaptureEnrollResult CaptureEnroll();
+    public Task<ICaptureEnrollResult> CaptureEnroll();
 
-    public IEnumerable<FingerPosition> GetEnrolledFingerPositions();
+    public Task<IEnumerable<FingerPosition>> GetEnrolledFingerPositions();
 
-    public IBiometricIdentity CommitEnroll();
+    public Task<IBiometricIdentity> CommitEnroll();
 
-    public IVerifyResult Verify(FingerPosition fingerPosition);
+    public Task<IVerifyResult> Verify(FingerPosition fingerPosition);
 
-    public void DeleteTemplate(IBiometricIdentity identity, FingerPosition fingerPosition);
+    public Task DeleteTemplate(IBiometricIdentity identity, FingerPosition fingerPosition);
 
-    public IIdentifyResult Identify();
+    public Task<IIdentifyResult> Identify();
 
-    public void CloseSession();
+    public Task CloseSession();
 }

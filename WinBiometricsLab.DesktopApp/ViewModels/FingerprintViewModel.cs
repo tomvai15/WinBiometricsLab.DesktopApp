@@ -121,7 +121,7 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
             {
                 IIdentifyResult result = null;
                 DisplayInfo("Please scan finger");
-                await Task.Run(() => result = _biometricService.Identify());
+                result = await _biometricService.Identify();
 
                 _biometricService.DeleteTemplate(result.Identity, SelectedFingerprint.Position);
                 Fingerprints.Remove(SelectedFingerprint);
@@ -133,7 +133,7 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
         {
             IIdentifyResult result = null;
             DisplayInfo("Please scan finger");
-            await Task.Run(() => result = _biometricService.Identify());
+            result = await _biometricService.Identify();
 
             if (result.RejectDetail != default)
             {
@@ -156,7 +156,7 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
 
             IVerifyResult result = null;
             DisplayInfo("Please scan finger");
-            await Task.Run(() => result = _biometricService.Verify(position));
+            result = await _biometricService.Verify(position);
 
             if (!result.IsMatch)
             {
@@ -167,9 +167,9 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
             DisplayInfo($"Fingerprint matches");
         }
 
-        public void EndSession()
+        public async void EndSession()
         {
-            var result = _biometricService.Identify();
+            var result = await _biometricService.Identify();
             foreach (var fingerPrint in Fingerprints)
             {
                 _biometricService.DeleteTemplate(result.Identity, fingerPrint.Position);
@@ -178,9 +178,9 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
             _biometricService.CloseSession();
         }
 
-        private void GetEnrollements(IBiometricService biometricService)
+        private async void GetEnrollements(IBiometricService biometricService)
         {
-            var positions = biometricService.GetEnrolledFingerPositions();
+            var positions = await biometricService.GetEnrolledFingerPositions();
 
             foreach (var position in positions)
             {

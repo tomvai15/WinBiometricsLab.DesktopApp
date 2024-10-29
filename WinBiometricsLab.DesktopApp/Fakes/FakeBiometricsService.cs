@@ -1,5 +1,4 @@
-﻿using System;
-using WinBiometricDotNet;
+﻿using WinBiometricDotNet;
 using WinBiometricsLab.Core.Results;
 
 namespace WinBiometricsLab.DesktopApp.Fakes;
@@ -8,14 +7,15 @@ public class FakeBiometricsService : IBiometricService
 {
     private readonly Random _random = new();
 
-    public void BeginEnroll(FingerPosition fingerPosition)
+    public Task BeginEnroll(FingerPosition fingerPosition)
     {
         Console.WriteLine(nameof(BeginEnroll));
+        return Task.CompletedTask;
     }
 
-    public ICaptureEnrollResult CaptureEnroll()
+    public async Task<ICaptureEnrollResult> CaptureEnroll()
     {
-        Thread.Sleep(2000);
+        await Task.Delay(2000);
         return new FakeCaptureEnrollResult
         {
             IsRequiredMoreData = RandomBool,
@@ -23,29 +23,31 @@ public class FakeBiometricsService : IBiometricService
         };
     }
 
-    public IBiometricIdentity CommitEnroll()
+    public async Task<IBiometricIdentity> CommitEnroll()
     {
         return new FakeBiometricIdentity();
     }
 
-    public void CloseSession()
+    public Task CloseSession()
     {
         Console.WriteLine(nameof(CloseSession));
+        return Task.CompletedTask;
     }
 
-    public void DeleteTemplate(IBiometricIdentity identity, FingerPosition fingerPosition)
+    public Task DeleteTemplate(IBiometricIdentity identity, FingerPosition fingerPosition)
     {
         Console.WriteLine(nameof(DeleteTemplate));
+        return Task.CompletedTask;
     }
 
-    public IEnumerable<FingerPosition> GetEnrolledFingerPositions()
+    public async Task<IEnumerable<FingerPosition>> GetEnrolledFingerPositions()
     {
         return [FingerPosition.LeftIndex, FingerPosition.RightIndex];
     }
 
-    public IIdentifyResult Identify()
+    public async Task<IIdentifyResult> Identify()
     {
-        Thread.Sleep(2000);
+        await Task.Delay(2000);
         return new FakeIdentifyResult
         {
             FingerPosition = FingerPosition.LeftIndex,
@@ -53,15 +55,15 @@ public class FakeBiometricsService : IBiometricService
         };
     }
 
-    public void OpenSession()
+    public async Task OpenSession()
     {
-        Thread.Sleep(2000);
+        await Task.Delay(2000);
         Console.WriteLine(nameof(OpenSession));
     }
 
-    public IVerifyResult Verify(FingerPosition fingerPosition)
+    public async Task<IVerifyResult> Verify(FingerPosition fingerPosition)
     {
-        Thread.Sleep(2000);
+        await Task.Delay(2000);
         return new FakeVerifyResult
         {
             IsMatch = RandomBool
