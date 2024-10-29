@@ -4,6 +4,8 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using WinBiometricDotNet;
 using WinBiometricsLab.Core;
+using WinBiometricsLab.Core.Results;
+using WinBiometricsLab.DesktopApp.Models;
 
 namespace WinBiometricsLab.DesktopApp.ViewModels
 {
@@ -71,7 +73,7 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
             }
         }
 
-        private string _infoText = "Infoo";
+        private string _infoText = "...";
 
         public string InfoText
         {
@@ -83,7 +85,6 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
             }
         }
 
-        public ICommand AddFingerprintCommand { get; }
         public ICommand UpdateFingerprintCommand { get; }
         public ICommand DeleteFingerprintCommand { get; }
         public ICommand IdentifyFingerprintCommand { get; }
@@ -94,46 +95,16 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
             _biometricService = biometricService;
             Fingerprints = new ObservableCollection<Fingerprint>();
 
-            AddFingerprintCommand = new Command(AddFingerprint);
             UpdateFingerprintCommand = new Command(UpdateFingerprint);
             DeleteFingerprintCommand = new Command(DeleteFingerprint);
             IdentifyFingerprintCommand = new Command(IdentifyFingerprint);
             VerifyFingerprintCommand = new Command(VerifyFingerprint);
+
+            GetEnrollements(biometricService);
         }
-
-        public void AddFingerprint()
-        {
-            var position = Enum.Parse<FingerPosition>(SelectedFingerprintPostition);
-            _biometricService.BeginEnroll(position);
-
-            DisplayInfo("Scan finger");
-            var result = _biometricService.CaptureEnroll();
-            while (result.IsRequiredMoreData || result.RejectDetail != default)
-            {
-                DisplayInfo("Scan finger again");
-                result = _biometricService.CaptureEnroll();
-            }
-
-            var commitResult = _biometricService.CommitEnroll();
-            DisplayInfo("Scan complete");
-
-            var fingerprint = new Fingerprint
-            {
-                Name = position.ToString(),
-                AssignedFunction = FunctionType.a,
-                Position = position,
-                Identity = commitResult
-            };
-
-            Fingerprints.Add(fingerprint);
-            NameInput = string.Empty;
-        }
-
 
         public void UpdateFingerprint()
-        {
-            _biometricService.DeleteTemplate(SelectedFingerprint.Identity, SelectedFingerprint.Position);
-
+        {        
             if (SelectedFingerprint != null && !string.IsNullOrWhiteSpace(NameInput))
             {
                 SelectedFingerprint.Name = NameInput;
@@ -144,18 +115,25 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
             }
         }
 
-        public void DeleteFingerprint()
+        public async void DeleteFingerprint()
         {
             if (SelectedFingerprint != null)
             {
+                IIdentifyResult result = null;
+                DisplayInfo("Please scan finger");
+                await Task.Run(() => result = _biometricService.Identify());
+
+                _biometricService.DeleteTemplate(result.Identity, SelectedFingerprint.Position);
                 Fingerprints.Remove(SelectedFingerprint);
                 SelectedFingerprint = null;
             }
         }
 
-        public void IdentifyFingerprint()
+        public async void IdentifyFingerprint()
         {
-            var result = _biometricService.Identify();
+            IIdentifyResult result = null;
+            DisplayInfo("Please scan finger");
+            await Task.Run(() => result = _biometricService.Identify());
 
             if (result.RejectDetail != default)
             {
@@ -169,13 +147,16 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
                 return;
             }
 
-            DisplayInfo($"Fingerprint {result.FingerPosition} recognized. Performing function {identifiedFingerprint.AssignedFunction}");
+            DisplayInfo($"Fingerprint `{result.FingerPosition}` recognized. Performing function `{identifiedFingerprint.AssignedFunction}`");
         }
 
-        public void VerifyFingerprint()
+        public async void VerifyFingerprint()
         {
             var position = Enum.Parse<FingerPosition>(SelectedFingerprintPostition);
-            var result = _biometricService.Verify(position);
+
+            IVerifyResult result = null;
+            DisplayInfo("Please scan finger");
+            await Task.Run(() => result = _biometricService.Verify(position));
 
             if (!result.IsMatch)
             {
@@ -184,6 +165,32 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
             }
 
             DisplayInfo($"Fingerprint matches");
+        }
+
+        public void EndSession()
+        {
+            var result = _biometricService.Identify();
+            foreach (var fingerPrint in Fingerprints)
+            {
+                _biometricService.DeleteTemplate(result.Identity, fingerPrint.Position);
+            }
+
+            _biometricService.CloseSession();
+        }
+
+        private void GetEnrollements(IBiometricService biometricService)
+        {
+            var positions = biometricService.GetEnrolledFingerPositions();
+
+            foreach (var position in positions)
+            {
+                Fingerprints.Add(new Fingerprint
+                {
+                    Name = position.ToString(),
+                    AssignedFunction = FunctionType.a,
+                    Position = position,
+                });
+            }
         }
 
         private void DisplayInfo(string text)

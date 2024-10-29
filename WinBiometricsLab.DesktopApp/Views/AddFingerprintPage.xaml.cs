@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using WinBiometricsLab.DesktopApp.Models;
 using WinBiometricsLab.DesktopApp.ViewModels;
 
 namespace WinBiometricsLab.DesktopApp.Views;

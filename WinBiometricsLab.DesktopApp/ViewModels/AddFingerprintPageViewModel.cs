@@ -4,6 +4,8 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using WinBiometricDotNet;
 using WinBiometricsLab.Core;
+using WinBiometricsLab.Core.Results;
+using WinBiometricsLab.DesktopApp.Models;
 
 namespace WinBiometricsLab.DesktopApp.ViewModels
 {
@@ -11,6 +13,26 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
     {
         private readonly IBiometricService _biometricService;
         private readonly Action _callback;
+
+        public AddFingerprintPageViewModel(IBiometricService biometricService,
+            ObservableCollection<Fingerprint> fingerprints,
+            Action callback)
+        {
+            _biometricService = biometricService;
+            Fingerprints = fingerprints;
+            _callback = callback;
+
+            AddFingerprintCommand = new Command(AddFingerprint);
+
+            var existingPositions = Fingerprints.Select(x => x.Position).ToHashSet();
+
+            FingerprintPostitions = Enum.GetValues(typeof(FingerPosition))
+                .Cast<FingerPosition>()
+                .Where(p => !existingPositions.Contains(p))
+                .Select(x => x.ToString())
+                .Where(x => !x.StartsWith("Un")).ToList();
+        }
+
 
         private string _selectedFunction = FunctionType.a.ToString();
         public string SelectedFunction
@@ -23,8 +45,7 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
             }
         }
 
-        public List<string> FingerprintPostitions { get; set; } = Enum.GetNames(typeof(FingerPosition))
-            .Where(x => !x.StartsWith("Un")).ToList();
+        public List<string> FingerprintPostitions { get; set; }
 
 
         private string _selectedFingerprintPostition = FingerPosition.LeftIndex.ToString();
@@ -40,7 +61,7 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
 
         public ObservableCollection<Fingerprint> Fingerprints { get; set; }
 
-        private string _infoText = "Infoo";
+        private string _infoText = "...";
 
         public string InfoText
         {
@@ -54,28 +75,23 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
 
         public ICommand AddFingerprintCommand { get; }
 
-        public AddFingerprintPageViewModel(IBiometricService biometricService, 
-            ObservableCollection<Fingerprint> fingerprints, 
-            Action callback)
-        {
-            _biometricService = biometricService;
-            Fingerprints = fingerprints;
-            _callback = callback;
 
-            AddFingerprintCommand = new Command(AddFingerprint);
-        }
-
-        public void AddFingerprint()
+        public async void AddFingerprint()
         {
             var position = Enum.Parse<FingerPosition>(SelectedFingerprintPostition);
             _biometricService.BeginEnroll(position);
 
+
+            ICaptureEnrollResult result = null;
             DisplayInfo("Scan finger");
-            var result = _biometricService.CaptureEnroll();
+            await Task.Run(() => result = _biometricService.CaptureEnroll());
+
             while (result.IsRequiredMoreData || result.RejectDetail != default)
             {
                 DisplayInfo("Scan finger again");
-                result = _biometricService.CaptureEnroll();
+                await Task.Run(() => result = _biometricService.CaptureEnroll());
+                DisplayInfo("");
+                await Task.Delay(100);
             }
 
             var commitResult = _biometricService.CommitEnroll();
@@ -85,8 +101,7 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
             {
                 Name = position.ToString(),
                 AssignedFunction = FunctionType.a,
-                Position = position,
-                Identity = commitResult
+                Position = position
             };
 
             Fingerprints.Add(fingerprint);

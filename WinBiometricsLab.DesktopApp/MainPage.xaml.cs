@@ -1,11 +1,15 @@
-﻿using WinBiometricsLab.DesktopApp.ViewModels;
+﻿using WinBiometricsLab.Core;
+using WinBiometricsLab.DesktopApp.Fakes;
+using WinBiometricsLab.DesktopApp.ViewModels;
 using WinBiometricsLab.DesktopApp.Views;
 
 namespace WinBiometricsLab.DesktopApp
 {
     public partial class MainPage : ContentPage
     {
-        private IBiometricService service = new FakeBiometricsService();
+        private readonly IBiometricService _biometricService = AppSettings.UseFakeBiometrics 
+            ? new FakeBiometricsService() 
+            : new BiometricService();
 
         public MainPage()
         {
@@ -15,10 +19,12 @@ namespace WinBiometricsLab.DesktopApp
             BindingContext = new FingerprintViewModel(service);
         }
 
-        private async void OnInitiateAddFingerprint(object sender, EventArgs e)
+        private async void StartProgram(object sender, EventArgs e)
         {
-            var callback = (Page page) => Navigation.RemovePage(page); ;
-            var page = new AddFingerprintPage(service, ((FingerprintViewModel)BindingContext).Fingerprints, callback);
+            InfoText.Text = "Please touch scanner";
+
+            await Task.Run(() => _biometricService.OpenSession());
+            var page = new FingerprintPage(_biometricService);
             await Navigation.PushAsync(page);
         }
     }

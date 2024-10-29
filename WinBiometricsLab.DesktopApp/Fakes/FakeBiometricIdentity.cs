@@ -2,7 +2,7 @@
 using WinBiometricDotNet;
 using WinBiometricsLab.Core.Results;
 
-namespace WinBiometricsLab.DesktopApp;
+namespace WinBiometricsLab.DesktopApp.Fakes;
 
 public record FakeBiometricIdentity : IBiometricIdentity
 {

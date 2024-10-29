@@ -3,7 +3,7 @@ using WinBiometricDotNet;
 using WinBiometricsLab.Core;
 using WinBiometricsLab.Core.Results;
 
-namespace WinBiometricsLab.DesktopApp.ViewModels
+namespace WinBiometricsLab.DesktopApp.Models
 {
     public class Fingerprint : INotifyPropertyChanged
     {
@@ -13,7 +13,7 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
                 [System.Runtime.CompilerServices.CallerMemberName]
             string propertyName = null)
         {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         private string _name;
@@ -41,8 +41,7 @@ namespace WinBiometricsLab.DesktopApp.ViewModels
         }
 
         public FingerPosition Position { get; set; }
-        public required IBiometricIdentity Identity { get; set; }
 
-        public string FullName => $"{Name} ({Position})";
+        public string FullName => $"{Name} (Position: {Position}, Function: {AssignedFunction})";
     }
 }
