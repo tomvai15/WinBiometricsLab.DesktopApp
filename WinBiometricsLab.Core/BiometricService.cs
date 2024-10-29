@@ -1,4 +1,5 @@
-﻿using WinBiometricDotNet;
+﻿using System.Collections.Generic;
+using WinBiometricDotNet;
 using WinBiometricsLab.Core.Results;
 
 namespace WinBiometricsLab.Core;
@@ -8,54 +9,56 @@ public class BiometricService : IBiometricService
     private Session _session;
     private uint _unitId;
 
-    public Task OpenSession()
+    public async Task OpenSession()
     {
-        _session = WinBiometric.OpenSession();
-        _unitId = WinBiometric.LocateSensor(_session);
-        return Task.CompletedTask;
+        await Task.Run(() =>
+        {
+            _session = WinBiometric.OpenSession();
+            _unitId = WinBiometric.LocateSensor(_session);
+        });
     }
 
-    public Task BeginEnroll(FingerPosition fingerPosition)
+    public async Task BeginEnroll(FingerPosition fingerPosition)
     {
-        WinBiometric.BeginEnroll(_session, fingerPosition, _unitId);
-        return Task.CompletedTask;
+        await Task.Run(() => WinBiometric.BeginEnroll(_session, fingerPosition, _unitId));
     }
 
     public async Task<ICaptureEnrollResult> CaptureEnroll()
     {
-        return new CaptureEnrollResultAdapter(WinBiometric.CaptureEnroll(_session));
+        return await Task.Run(() => new CaptureEnrollResultAdapter(WinBiometric.CaptureEnroll(_session)));
     }
 
     public async Task<IEnumerable<FingerPosition>> GetEnrolledFingerPositions()
     {
-        return WinBiometric.EnumEnrollments(_session, _unitId);
+        return await Task.Run(() => WinBiometric.EnumEnrollments(_session, _unitId));
     }
 
     public async Task<IBiometricIdentity> CommitEnroll()
     {
-        return new BiometricIdentityAdapter(WinBiometric.CommitEnroll(_session));
+        return await Task.Run(() => new BiometricIdentityAdapter(WinBiometric.CommitEnroll(_session)));
     }
 
     public async Task<IVerifyResult> Verify(FingerPosition fingerPosition)
     {
-        return new VerifyResultAdapter(WinBiometric.Verify(_session, fingerPosition));
+        return await Task.Run(() => new VerifyResultAdapter(WinBiometric.Verify(_session, fingerPosition)));
     }
 
-    public Task DeleteTemplate(IBiometricIdentity identity, FingerPosition fingerPosition)
+    public async Task DeleteTemplate(IBiometricIdentity identity, FingerPosition fingerPosition)
     {
-        var adapter = (BiometricIdentityAdapter)identity;
-        WinBiometric.DeleteTemplate(_session, _unitId, adapter.BiometricIdentity, fingerPosition);
-        return Task.CompletedTask;
+        await Task.Run(() =>
+        {
+            var adapter = (BiometricIdentityAdapter)identity;
+            WinBiometric.DeleteTemplate(_session, _unitId, adapter.BiometricIdentity, fingerPosition);
+        });
     }
 
     public async Task<IIdentifyResult> Identify()
     {
-        return new IdentifyResultAdapter(WinBiometric.Identify(_session));
+        return await Task.Run(() => new IdentifyResultAdapter(WinBiometric.Identify(_session)));
     }
 
-    public Task CloseSession()
+    public async Task CloseSession()
     {
-        WinBiometric.CloseSession(_session);
-        return Task.CompletedTask;
+        await Task.Run(() => WinBiometric.CloseSession(_session));
     }
 }
